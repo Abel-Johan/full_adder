@@ -9,14 +9,19 @@ tint = 100                          # Time interval between data points; normali
 T = 5000000                         # Total simulation time; normalised by beta*h_bar, dimensionless
 Ntot = int(T/tint)                  # Number of data points
 N_INPUTS = 8                        # Number of possible input combinations
+ksi_th = 0.01                       # Error rate threshold
 
 # Initialise x and y values
-timesteps = np.arange(0, T, tint)        # x-axis: time
+timesteps = np.arange(0, T, tint)   # x-axis: time
 Sum = np.zeros(Ntot)                # Initialise sum output voltage vector
 Cout = np.zeros(Ntot)               # Initialise carry out output voltage vector
 ErrorSum = np.zeros(Ntot)           # Initialise sum error rate vector
 ErrorCout = np.zeros(Ntot)          # Initialise carry out error rate vector
 Qdiss = np.zeros(Ntot)              # Initialise total energy dissipation vector
+
+# Initialise array to store propagation times
+tau_sum = np.zeros((N_INPUTS, N_INPUTS))
+tau_cout = np.zeros((N_INPUTS, N_INPUTS))
 
 def plot_individual():
     try:
@@ -53,11 +58,25 @@ def plot_individual():
                     ErrorSum[k] = row["Sum Error Rate (Dimless)"]
                     ErrorCout[k] = row["Carry Out Error Rate (Dimless)"]
                     Qdiss[k] = row["Energy Dissipation (J)"]
+
+                    # Sometimes, the concept of propagation time for a particular trial is trivial
+                    # This is when the old theoretical steady-state state is equal to the new theoretical steady-state so error rate is always < 0.01
+                    # This means tau would be zero for that trial -> the assignment of tau is quite redundant
+                    # This first inequality ensures that the concept of tau is non-trivial
+                    if float(ErrorSum[0]) > 0.01:
+                        if float(ErrorSum[k]) < 0.01 and tau_sum[i, j] == 0.0:
+                            tau_sum[i, j] = k
+                    if float(ErrorCout[0]) > 0.01:
+                        if float(ErrorCout[k]) < 0.01 and tau_cout[i, j] == 0.0:
+                            tau_cout[i, j] = k                   
+
                     k += 1
             plt.plot(timesteps, Sum)
             plt.xlabel("Time (s)")
             plt.ylabel("Sum Voltage (V)")
             plt.title(f"Plot of Sum Voltage against Time for Current Input {j_bin}, Previous Input {i_bin}")
+            plt.plot(tau_sum[i, j]*tint, Sum[int(tau_sum[i, j])], 'rx')
+            plt.text(tau_sum[i, j]*tint, Sum[int(tau_sum[i, j])]*0.9, f"({tau_sum[i, j]*tint}, {Sum[int(tau_sum[i, j])]})")
             plt.savefig(f"./Sum/Sum-Prev{i_bin}-Curr{j_bin}")
             plt.close()
 
@@ -65,6 +84,8 @@ def plot_individual():
             plt.xlabel("Time (s)")
             plt.ylabel("Carry Out Voltage (V)")
             plt.title(f"Plot of Carry Out Voltage against Time for Current Input {j_bin}, Previous Input {i_bin}")
+            plt.plot(tau_cout[i, j]*tint, Cout[int(tau_cout[i, j])], 'rx')
+            plt.text(tau_cout[i, j]*tint, Cout[int(tau_cout[i, j])]*0.9, f"({tau_cout[i, j]*tint}, {Cout[int(tau_cout[i, j])]})")
             plt.savefig(f"./CarryOut/Cout-Prev{i_bin}-Curr{j_bin}")
             plt.close()
 
@@ -72,6 +93,8 @@ def plot_individual():
             plt.xlabel("Time (s)")
             plt.ylabel("Sum Error Rate (Dimless)")
             plt.title(f"Plot of Sum Error Rate against Time for Current Input {j_bin}, Previous Input {i_bin}")
+            plt.plot(tau_sum[i, j]*tint, ErrorSum[int(tau_sum[i, j])], 'rx')
+            plt.text(tau_sum[i, j]*tint, ErrorSum[int(tau_sum[i, j])]*0.9, f"({tau_sum[i, j]*tint}, {ErrorSum[int(tau_sum[i, j])]})")
             plt.savefig(f"./ErrorSum/ErrorSum-Prev{i_bin}-Curr{j_bin}")
             plt.close()
 
@@ -79,6 +102,8 @@ def plot_individual():
             plt.xlabel("Time (s)")
             plt.ylabel("Carry Out Error Rate (Dimless)")
             plt.title(f"Plot of Carry Out Error Rate against Time for Current Input {j_bin}, Previous Input {i_bin}")
+            plt.plot(tau_cout[i, j]*tint, ErrorCout[int(tau_cout[i, j])], 'rx')
+            plt.text(tau_cout[i, j]*tint, ErrorCout[int(tau_cout[i, j])]*0.9, f"({tau_cout[i, j]*tint}, {ErrorCout[int(tau_cout[i, j])]})")
             plt.savefig(f"./ErrorCout/ErrorCout-Prev{i_bin}-Curr{j_bin}")
             plt.close()
 
@@ -149,11 +174,33 @@ def plot_concise():
                     ErrorSum[k] = row["Sum Error Rate (Dimless)"]
                     ErrorCout[k] = row["Carry Out Error Rate (Dimless)"]
                     Qdiss[k] = row["Energy Dissipation (J)"]
+                    
+                    # Sometimes, the concept of propagation time for a particular trial is trivial
+                    # This is when the old theoretical steady-state state is equal to the new theoretical steady-state so error rate is always < 0.01
+                    # This means tau would be zero for that trial -> the assignment of tau is quite redundant
+                    # This first inequality ensures that the concept of tau is non-trivial
+                    if float(ErrorSum[0]) > 0.01:
+                        if float(ErrorSum[k]) < 0.01 and tau_sum[i, j] == 0.0:
+                            tau_sum[i, j] = k
+                    if float(ErrorCout[0]) > 0.01:
+                        if float(ErrorCout[k]) < 0.01 and tau_cout[i, j] == 0.0:
+                            tau_cout[i, j] = k                   
+                            
                     k += 1
+
+            #plt.plot(tau_cout[i, j]*tint, ErrorCout[int(tau_cout[i, j])], 'rx')
             sumax.plot(timesteps, Sum)
+            sumax.plot(tau_sum[i, j]*tint, Sum[int(tau_sum[i, j])], 'gx')
+            sumax.text(tau_sum[i, j]*tint, Sum[int(tau_sum[i, j])]*0.9, f"({tau_sum[i, j]*tint}, {Sum[int(tau_sum[i, j])]})")
             coutax.plot(timesteps, Cout)
+            coutax.plot(tau_cout[i, j]*tint, Cout[int(tau_cout[i, j])], 'gx')
+            coutax.text(tau_cout[i, j]*tint, Cout[int(tau_cout[i, j])]*0.9, f"({tau_cout[i, j]*tint}, {Cout[int(tau_cout[i, j])]})")
             sumerrorax.plot(timesteps, ErrorSum)
+            sumerrorax.plot(tau_sum[i, j]*tint, ErrorSum[int(tau_sum[i, j])], 'gx')
+            sumerrorax.text(tau_sum[i, j]*tint, ErrorSum[int(tau_sum[i, j])]*0.9, f"({tau_sum[i, j]*tint}, {ErrorSum[int(tau_sum[i, j])]})")
             couterrorax.plot(timesteps, ErrorCout)
+            couterrorax.plot(tau_cout[i, j]*tint, ErrorCout[int(tau_cout[i, j])], 'gx')
+            couterrorax.text(tau_cout[i, j]*tint, ErrorCout[int(tau_sum[i, j])]*0.9, f"({tau_cout[i, j]*tint}, {ErrorCout[int(tau_cout[i, j])]})")
             energyax.plot(timesteps, Qdiss)
            
         sumfig.savefig(f"./SumConcise/Sum-Concise-Prev{i_bin}")
