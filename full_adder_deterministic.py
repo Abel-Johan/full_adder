@@ -28,7 +28,6 @@ from pathlib import Path
 Gamma = 0.2         # Rate constant of electron movement; normalised by 1/(beta*h_bar)
 Cg = 200.0          # Gate capacitance of each NAND_Gate; normalised by q/V_T
 alpha = 0.1         # Judgment threshold factor
-ksi = 0.01          # Error rate threshold factor
 V_D = 5.0           # Drain voltage; normalised by V_T
 
 # Define simulation parameters
