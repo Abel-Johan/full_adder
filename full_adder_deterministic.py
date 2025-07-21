@@ -21,14 +21,14 @@ V_T   = (kB*T)/q        # Thermal voltage
 import numpy as np
 from scipy.linalg import null_space
 from scipy import integrate
-import csv, time
+import csv, time, sys
 from pathlib import Path
 
 # Define physical constants and parameters
 Gamma = 0.2         # Rate constant of electron movement; normalised by 1/(beta*h_bar)
 Cg = 200.0          # Gate capacitance of each NAND_Gate; normalised by q/V_T
 alpha = 0.1         # Judgment threshold factor
-V_D = 5.0           # Drain voltage; normalised by V_T
+V_D = 20.0           # Drain voltage, normalised by V_T
 
 # Define simulation parameters
 tint = 100          # Time interval between data points; normalised by beta*h_bar
@@ -534,9 +534,17 @@ def Full_Adder_propagation(Vin_Cin, Vin_A, Vin_B):
 def main():
     start = time.time_ns()
 
-    # Create directories to hold results
+    # Create folder to hold results and graphs
+    output_folder = f"./V_D-{V_D}"
     try:
-        Path("./Results").mkdir()
+        Path(output_folder).mkdir()
+    except FileExistsError:
+        print("Directory already exists - no need to create again")
+
+    # Create directories to hold results
+    output_dir = f"{output_folder}/ResultsV_D-{V_D}"
+    try:
+        Path(output_dir).mkdir()
     except FileExistsError:
         print("Directory already exists - no need to create again")
 
@@ -575,16 +583,16 @@ def main():
                     ErrorCout[i, j, k] = 1 - integrate.quad(Gauss, -np.inf, alpha*V_D, args=(Cout[i, j, k], var))[0]
 
             # Write results to a csv file
-            with open(f"./Results/Results-Prev{convert_to_binary(i)}-Curr{convert_to_binary(j)}.csv", "w") as file:
+            with open(f"{output_dir}/Results-Prev{convert_to_binary(i)}-Curr{convert_to_binary(j)}.csv", "w") as file:
                 writer = csv.DictWriter(file, fieldnames=["Timestep (s)", "Sum Voltage (V)",
-                                                          "Carry Out Voltage (V)", "Sum Error Rate (Dimless)",
-                                                          "Carry Out Error Rate (Dimless)", "Energy Dissipation (J)"],
-                                                          lineterminator="\n")
+                                                        "Carry Out Voltage (V)", "Sum Error Rate (Dimless)",
+                                                        "Carry Out Error Rate (Dimless)", "Energy Dissipation (J)"],
+                                                        lineterminator="\n")
                 writer.writeheader()
                 for k in range(Ntot):
                     writer.writerow({"Timestep (s)":k*tint, "Sum Voltage (V)":Sum[i, j, k],
-                                     "Carry Out Voltage (V)":Cout[i, j, k], "Sum Error Rate (Dimless)":ErrorSum[i, j, k],
-                                     "Carry Out Error Rate (Dimless)":ErrorCout[i, j, k], "Energy Dissipation (J)":Qdiss[i, j, k]})
+                                    "Carry Out Voltage (V)":Cout[i, j, k], "Sum Error Rate (Dimless)":ErrorSum[i, j, k],
+                                    "Carry Out Error Rate (Dimless)":ErrorCout[i, j, k], "Energy Dissipation (J)":Qdiss[i, j, k]})
 
     end = time.time_ns()
 

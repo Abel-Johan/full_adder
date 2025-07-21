@@ -5,11 +5,12 @@ from pathlib import Path
 from full_adder_deterministic import convert_to_binary
 
 # Define simulation parameters
-tint = 100                          # Time interval between data points; normalised by beta*h_bar, dimensionless
-T = 2500000                         # Total simulation time; normalised by beta*h_bar, dimensionless
+tint = 100                          # Time interval between data points, normalised by beta*h_bar
+T = 2500000                         # Total simulation time, normalised by beta*h_bar
 Ntot = int(T/tint)                  # Number of data points
 N_INPUTS = 8                        # Number of possible input combinations
 ksi_th = 0.01                       # Error rate threshold
+V_D = 5.0                           # Drain voltage, normalised by V_T
 
 # Initialise x and y values
 timesteps = np.arange(0, T, tint)   # x-axis: time
@@ -24,24 +25,29 @@ tau_sum = np.zeros((N_INPUTS, N_INPUTS))
 tau_cout = np.zeros((N_INPUTS, N_INPUTS))
 
 def plot_individual():
+    sum_dir = f"./V_D-{V_D}/Sum-{V_D}"
+    cout_dir = f"./V_D-{V_D}/CarryOut-{V_D}"
+    errorsum_dir = f"./V_D-{V_D}/ErrorSum-{V_D}"
+    errorcout_dir = f"./V_D-{V_D}/ErrorCout-{V_D}"
+    qdiss_dir = f"./V_D-{V_D}/Qdiss-{V_D}"
     try:
-        Path("./Sum").mkdir()
+        Path(sum_dir).mkdir()
     except FileExistsError:
         print("Directory already exists - no need to create again")
     try:
-        Path("./CarryOut").mkdir()
+        Path(cout_dir).mkdir()
     except FileExistsError:
         print("Directory already exists - no need to create again")
     try:
-        Path("./ErrorSum").mkdir()
+        Path(errorsum_dir).mkdir()
     except FileExistsError:
         print("Directory already exists - no need to create again")
     try:    
-        Path("./ErrorCout").mkdir()
+        Path(errorcout_dir).mkdir()
     except FileExistsError:
         print("Directory already exists - no need to create again")
     try:    
-        Path("./Qdiss").mkdir()
+        Path(qdiss_dir).mkdir()
     except FileExistsError:
         print("Directory already exists - no need to create again")
 
@@ -49,7 +55,7 @@ def plot_individual():
         i_bin = convert_to_binary(i)
         for j in range(N_INPUTS):
             j_bin = convert_to_binary(j)
-            with open(f"./Results/Results-Prev{i_bin}-Curr{j_bin}.csv", "r") as file:
+            with open(f"./V_D-{V_D}/ResultsV_D-{V_D}/Results-Prev{i_bin}-Curr{j_bin}.csv", "r") as file:
                 reader = csv.DictReader(file)
                 k = 0
                 for row in reader:
@@ -77,7 +83,7 @@ def plot_individual():
             plt.title(f"Plot of Sum Voltage against Time for Current Input {j_bin}, Previous Input {i_bin}")
             plt.plot(tau_sum[i, j]*tint, Sum[int(tau_sum[i, j])], 'rx')
             plt.text(tau_sum[i, j]*tint, Sum[int(tau_sum[i, j])]*0.9, f"({tau_sum[i, j]*tint}, {Sum[int(tau_sum[i, j])]})")
-            plt.savefig(f"./Sum/Sum-Prev{i_bin}-Curr{j_bin}")
+            plt.savefig(f"{sum_dir}/Sum-Prev{i_bin}-Curr{j_bin}")
             plt.close()
 
             plt.plot(timesteps, Cout)
@@ -86,7 +92,7 @@ def plot_individual():
             plt.title(f"Plot of Carry Out Voltage against Time for Current Input {j_bin}, Previous Input {i_bin}")
             plt.plot(tau_cout[i, j]*tint, Cout[int(tau_cout[i, j])], 'rx')
             plt.text(tau_cout[i, j]*tint, Cout[int(tau_cout[i, j])]*0.9, f"({tau_cout[i, j]*tint}, {Cout[int(tau_cout[i, j])]})")
-            plt.savefig(f"./CarryOut/Cout-Prev{i_bin}-Curr{j_bin}")
+            plt.savefig(f"{cout_dir}/Cout-Prev{i_bin}-Curr{j_bin}")
             plt.close()
 
             plt.plot(timesteps, ErrorSum)
@@ -95,7 +101,7 @@ def plot_individual():
             plt.title(f"Plot of Sum Error Rate against Time for Current Input {j_bin}, Previous Input {i_bin}")
             plt.plot(tau_sum[i, j]*tint, ErrorSum[int(tau_sum[i, j])], 'rx')
             plt.text(tau_sum[i, j]*tint, ErrorSum[int(tau_sum[i, j])]*0.9, f"({tau_sum[i, j]*tint}, {ErrorSum[int(tau_sum[i, j])]})")
-            plt.savefig(f"./ErrorSum/ErrorSum-Prev{i_bin}-Curr{j_bin}")
+            plt.savefig(f"{errorsum_dir}/ErrorSum-Prev{i_bin}-Curr{j_bin}")
             plt.close()
 
             plt.plot(timesteps, ErrorCout)
@@ -104,35 +110,40 @@ def plot_individual():
             plt.title(f"Plot of Carry Out Error Rate against Time for Current Input {j_bin}, Previous Input {i_bin}")
             plt.plot(tau_cout[i, j]*tint, ErrorCout[int(tau_cout[i, j])], 'rx')
             plt.text(tau_cout[i, j]*tint, ErrorCout[int(tau_cout[i, j])]*0.9, f"({tau_cout[i, j]*tint}, {ErrorCout[int(tau_cout[i, j])]})")
-            plt.savefig(f"./ErrorCout/ErrorCout-Prev{i_bin}-Curr{j_bin}")
+            plt.savefig(f"{errorcout_dir}/ErrorCout-Prev{i_bin}-Curr{j_bin}")
             plt.close()
 
             plt.plot(timesteps, Qdiss)
             plt.xlabel("Time (s)")
             plt.ylabel("Energy Dissipation (J)")
             plt.title(f"Plot of Cumulative Energy Dissipation against Time for Current Input {j_bin}, Previous Input {i_bin}")
-            plt.savefig(f"./Qdiss/Qdiss-Prev{i_bin}-Curr{j_bin}")
+            plt.savefig(f"{qdiss_dir}/Qdiss-Prev{i_bin}-Curr{j_bin}")
             plt.close()
 
 def plot_concise():
+    sum_dir = f"./V_D-{V_D}/SumConcise-{V_D}"
+    cout_dir = f"./V_D-{V_D}/CarryOutConcise-{V_D}"
+    errorsum_dir = f"./V_D-{V_D}/ErrorSumConcise-{V_D}"
+    errorcout_dir = f"./V_D-{V_D}/ErrorCoutConcise-{V_D}"
+    qdiss_dir = f"./V_D-{V_D}/QdissConcise-{V_D}"
     try:
-        Path("./SumConcise").mkdir()
+        Path(sum_dir).mkdir()
     except FileExistsError:
         print("Directory already exists - no need to create again")
     try:
-        Path("./CarryOutConcise").mkdir()
+        Path(cout_dir).mkdir()
     except FileExistsError:
         print("Directory already exists - no need to create again")
     try:
-        Path("./ErrorSumConcise").mkdir()
+        Path(errorsum_dir).mkdir()
     except FileExistsError:
         print("Directory already exists - no need to create again")
     try:    
-        Path("./ErrorCoutConcise").mkdir()
+        Path(errorcout_dir).mkdir()
     except FileExistsError:
         print("Directory already exists - no need to create again")
     try:    
-        Path("./QdissConcise").mkdir()
+        Path(qdiss_dir).mkdir()
     except FileExistsError:
         print("Directory already exists - no need to create again")
     for i in range(N_INPUTS):
@@ -165,7 +176,7 @@ def plot_concise():
         energyax.set_title(f"Plot of Cumulative Energy Dissipation against Time")
         for j in range(N_INPUTS):
             j_bin = convert_to_binary(j)
-            with open(f"./Results/Results-Prev{i_bin}-Curr{j_bin}.csv", "r") as file:
+            with open(f"./V_D-{V_D}/ResultsV_D-{V_D}/Results-Prev{i_bin}-Curr{j_bin}.csv", "r") as file:
                 reader = csv.DictReader(file)
                 k = 0
                 for row in reader:
@@ -203,11 +214,11 @@ def plot_concise():
             couterrorax.text(tau_cout[i, j]*tint, ErrorCout[int(tau_sum[i, j])]*0.9, f"({tau_cout[i, j]*tint}, {ErrorCout[int(tau_cout[i, j])]})")
             energyax.plot(timesteps, Qdiss)
            
-        sumfig.savefig(f"./SumConcise/Sum-Concise-Prev{i_bin}")
-        coutfig.savefig(f"./CarryOutConcise/Cout-Concise-Prev{i_bin}")
-        sumerrorfig.savefig(f"./ErrorSumConcise/ErrorSum-Concise-Cout{i_bin}")
-        couterrorfig.savefig(f"./ErrorCoutConcise/ErrorCout-Concise-Prev{i_bin}")
-        energyfig.savefig(f"./QdissConcise/Qdiss-Concise-Prev{i_bin}")
+        sumfig.savefig(f"{sum_dir}/Sum-Concise-Prev{i_bin}")
+        coutfig.savefig(f"{cout_dir}/Cout-Concise-Prev{i_bin}")
+        sumerrorfig.savefig(f"{errorsum_dir}/ErrorSum-Concise-Cout{i_bin}")
+        couterrorfig.savefig(f"{errorcout_dir}/ErrorCout-Concise-Prev{i_bin}")
+        energyfig.savefig(f".{qdiss_dir}/Qdiss-Concise-Prev{i_bin}")
         plt.close()
 
 def main():
