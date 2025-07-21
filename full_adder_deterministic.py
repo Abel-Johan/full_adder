@@ -32,7 +32,7 @@ V_D = 5.0           # Drain voltage; normalised by V_T
 
 # Define simulation parameters
 tint = 100          # Time interval between data points; normalised by beta*h_bar
-T = 5000000         # Total simulation time; normalised by beta*h_bar
+T = 2500000         # Total simulation time; normalised by beta*h_bar
 Ntot = int(T/tint)   # Number of timesteps
 
 # Define current input sequence. Looping through all three arrays together will allow us to model for all possible current inputs

@@ -6,7 +6,7 @@ from full_adder_deterministic import convert_to_binary
 
 # Define simulation parameters
 tint = 100                          # Time interval between data points; normalised by beta*h_bar, dimensionless
-T = 5000000                         # Total simulation time; normalised by beta*h_bar, dimensionless
+T = 2500000                         # Total simulation time; normalised by beta*h_bar, dimensionless
 Ntot = int(T/tint)                  # Number of data points
 N_INPUTS = 8                        # Number of possible input combinations
 ksi_th = 0.01                       # Error rate threshold
