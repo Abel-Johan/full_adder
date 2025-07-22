@@ -29,10 +29,11 @@ Gamma = 0.2         # Rate constant of electron movement; normalised by 1/(beta*
 Cg = 200.0          # Gate capacitance of each NAND_Gate; normalised by q/V_T
 alpha = 0.1         # Judgment threshold factor
 V_D = 20.0           # Drain voltage, normalised by V_T
+kT = 4.143e-21      # What we normalised energy with. Used to rescale energy dissipation to prevent overflow
 
 # Define simulation parameters
-tint = 100          # Time interval between data points; normalised by beta*h_bar
-T = 2500000         # Total simulation time; normalised by beta*h_bar
+tint = 50000000000          # Time interval between data points; normalised by beta*h_bar
+T = 1000000000000000         # Total simulation time; normalised by beta*h_bar
 Ntot = int(T/tint)   # Number of timesteps
 
 # Define current input sequence. Looping through all three arrays together will allow us to model for all possible current inputs
@@ -337,7 +338,7 @@ def NAND_propagation(Vin_X, Vin_Y, Vg):
     # Calculate output voltage of NAND and additional energy dissipated by NAND within one timestep
     # Recall the definition of Jg used in the paper is the movement of negative charge
     Vg -= Jg*tint/Cg
-    Qdiss_NAND = (J1-J2)*tint*(mu_s-mu_g) + (J3-J4+J5-J6)*tint*(mu_d-mu_g)
+    Qdiss_NAND = kT*(J1-J2)*tint*(mu_s-mu_g) + kT*(J3-J4+J5-J6)*tint*(mu_d-mu_g)
     return Vg, Qdiss_NAND
 
 def NOT_propagation(Vin, Vg):
@@ -432,7 +433,7 @@ def NOT_propagation(Vin, Vg):
     # Calculate output voltage of NOT and additional energy dissipated by NOT within one timestep
     # Recall the definition of Jg used in the paper is the movement of negative charge
     Vg -= Jg*tint/Cg
-    Qdiss_NOT = (J1-J2)*tint**(mu_s-mu_g) + (J3-J4)*tint*(mu_d-mu_g)
+    Qdiss_NOT = kT*(J1-J2)*tint*(mu_s-mu_g) + kT*(J3-J4)*tint*(mu_d-mu_g)
     return Vg, Qdiss_NOT
 
 def XOR_propagation(Vin_X, Vin_Y, Vg_NAND1, Vg_NAND2, Vg_NAND3, Vg_NAND4):

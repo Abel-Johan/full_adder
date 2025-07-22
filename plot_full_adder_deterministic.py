@@ -10,7 +10,7 @@ T = 2500000                         # Total simulation time, normalised by beta*
 Ntot = int(T/tint)                  # Number of data points
 N_INPUTS = 8                        # Number of possible input combinations
 ksi_th = 0.01                       # Error rate threshold
-V_D = 5.0                           # Drain voltage, normalised by V_T
+V_D = 2.5                           # Drain voltage, normalised by V_T
 
 # Initialise x and y values
 timesteps = np.arange(0, T, tint)   # x-axis: time
@@ -199,26 +199,31 @@ def plot_concise():
                             
                     k += 1
 
-            #plt.plot(tau_cout[i, j]*tint, ErrorCout[int(tau_cout[i, j])], 'rx')
-            sumax.plot(timesteps, Sum)
-            sumax.plot(tau_sum[i, j]*tint, Sum[int(tau_sum[i, j])], 'gx')
-            sumax.text(tau_sum[i, j]*tint, Sum[int(tau_sum[i, j])]*0.9, f"({tau_sum[i, j]*tint}, {Sum[int(tau_sum[i, j])]})")
-            coutax.plot(timesteps, Cout)
-            coutax.plot(tau_cout[i, j]*tint, Cout[int(tau_cout[i, j])], 'gx')
-            coutax.text(tau_cout[i, j]*tint, Cout[int(tau_cout[i, j])]*0.9, f"({tau_cout[i, j]*tint}, {Cout[int(tau_cout[i, j])]})")
-            sumerrorax.plot(timesteps, ErrorSum)
-            sumerrorax.plot(tau_sum[i, j]*tint, ErrorSum[int(tau_sum[i, j])], 'gx')
-            sumerrorax.text(tau_sum[i, j]*tint, ErrorSum[int(tau_sum[i, j])]*0.9, f"({tau_sum[i, j]*tint}, {ErrorSum[int(tau_sum[i, j])]})")
-            couterrorax.plot(timesteps, ErrorCout)
-            couterrorax.plot(tau_cout[i, j]*tint, ErrorCout[int(tau_cout[i, j])], 'gx')
-            couterrorax.text(tau_cout[i, j]*tint, ErrorCout[int(tau_sum[i, j])]*0.9, f"({tau_cout[i, j]*tint}, {ErrorCout[int(tau_cout[i, j])]})")
-            energyax.plot(timesteps, Qdiss)
-           
+            sumax.plot(timesteps, Sum, label=j_bin)
+            # sumax.plot(tau_sum[i, j]*tint, Sum[int(tau_sum[i, j])], 'gx')
+            # sumax.text(tau_sum[i, j]*tint, Sum[int(tau_sum[i, j])]*0.9, f"({tau_sum[i, j]*tint}, {Sum[int(tau_sum[i, j])]})")
+            coutax.plot(timesteps, Cout, label=j_bin)
+            # coutax.plot(tau_cout[i, j]*tint, Cout[int(tau_cout[i, j])], 'gx')
+            # coutax.text(tau_cout[i, j]*tint, Cout[int(tau_cout[i, j])]*0.9, f"({tau_cout[i, j]*tint}, {Cout[int(tau_cout[i, j])]})")
+            sumerrorax.plot(timesteps, ErrorSum, label=j_bin)
+            # sumerrorax.plot(tau_sum[i, j]*tint, ErrorSum[int(tau_sum[i, j])], 'gx')
+            # sumerrorax.text(tau_sum[i, j]*tint, ErrorSum[int(tau_sum[i, j])]*0.9, f"({tau_sum[i, j]*tint}, {ErrorSum[int(tau_sum[i, j])]})")
+            couterrorax.plot(timesteps, ErrorCout, label=j_bin)
+            # couterrorax.plot(tau_cout[i, j]*tint, ErrorCout[int(tau_cout[i, j])], 'gx')
+            # couterrorax.text(tau_cout[i, j]*tint, ErrorCout[int(tau_sum[i, j])]*0.9, f"({tau_cout[i, j]*tint}, {ErrorCout[int(tau_cout[i, j])]})")
+            energyax.plot(timesteps, Qdiss, label=j_bin)
+        
+        sumax.legend(loc=7,fontsize=11)
+        coutax.legend(loc=7,fontsize=11)
+        sumerrorax.legend(loc=7,fontsize=11)
+        couterrorax.legend(loc=7,fontsize=11)
+        energyax.legend(loc=7,fontsize=11)
+
         sumfig.savefig(f"{sum_dir}/Sum-Concise-Prev{i_bin}")
         coutfig.savefig(f"{cout_dir}/Cout-Concise-Prev{i_bin}")
         sumerrorfig.savefig(f"{errorsum_dir}/ErrorSum-Concise-Cout{i_bin}")
         couterrorfig.savefig(f"{errorcout_dir}/ErrorCout-Concise-Prev{i_bin}")
-        energyfig.savefig(f".{qdiss_dir}/Qdiss-Concise-Prev{i_bin}")
+        energyfig.savefig(f"{qdiss_dir}/Qdiss-Concise-Prev{i_bin}")
         plt.close()
 
 def main():
