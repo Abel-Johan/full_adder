@@ -1,7 +1,7 @@
 """
 full_adder_deterministic.py
 
-Usage: python full_adder_deterministic.py <Cin> <A> <B>, whereby <Cin>, <A>, <B> take values of 0 or 1
+Usage: python full_adder_deterministic.py
 
 This script models the time-evolution of the output voltage of a full-adder circuit.
 The full-adder circuit is to be constructed using only NANDs and NOTs.
@@ -22,7 +22,10 @@ import numpy as np
 from scipy.linalg import null_space
 from scipy import integrate
 import csv, time, sys
+import warnings
 from pathlib import Path
+
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 # Define physical constants and parameters
 Gamma = 0.2         # Rate constant of electron movement; normalised by 1/(beta*h_bar)
