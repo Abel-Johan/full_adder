@@ -25,11 +25,11 @@ tau_sum = np.zeros((N_INPUTS, N_INPUTS))
 tau_cout = np.zeros((N_INPUTS, N_INPUTS))
 
 def plot_individual():
-    sum_dir = f"./V_D-{V_D}/Sum-{V_D}"
-    cout_dir = f"./V_D-{V_D}/CarryOut-{V_D}"
-    errorsum_dir = f"./V_D-{V_D}/ErrorSum-{V_D}"
-    errorcout_dir = f"./V_D-{V_D}/ErrorCout-{V_D}"
-    qdiss_dir = f"./V_D-{V_D}/Qdiss-{V_D}"
+    sum_dir = f"./V_D-{V_D}/Deterministic/Sum-{V_D}"
+    cout_dir = f"./V_D-{V_D}/Deterministic/CarryOut-{V_D}"
+    errorsum_dir = f"./V_D-{V_D}/Deterministic/ErrorSum-{V_D}"
+    errorcout_dir = f"./V_D-{V_D}/Deterministic/ErrorCout-{V_D}"
+    qdiss_dir = f"./V_D-{V_D}/Deterministic/Qdiss-{V_D}"
     try:
         Path(sum_dir).mkdir()
     except FileExistsError:
@@ -55,7 +55,7 @@ def plot_individual():
         i_bin = convert_to_binary(i)
         for j in range(N_INPUTS):
             j_bin = convert_to_binary(j)
-            with open(f"./V_D-{V_D}/ResultsV_D-{V_D}/Results-Prev{i_bin}-Curr{j_bin}.csv", "r") as file:
+            with open(f"./V_D-{V_D}/Deterministic/ResultsV_D-{V_D}/Results-Prev{i_bin}-Curr{j_bin}.csv", "r") as file:
                 reader = csv.DictReader(file)
                 k = 0
                 for row in reader:
@@ -121,11 +121,11 @@ def plot_individual():
             plt.close()
 
 def plot_concise():
-    sum_dir = f"./V_D-{V_D}/SumConcise-{V_D}"
-    cout_dir = f"./V_D-{V_D}/CarryOutConcise-{V_D}"
-    errorsum_dir = f"./V_D-{V_D}/ErrorSumConcise-{V_D}"
-    errorcout_dir = f"./V_D-{V_D}/ErrorCoutConcise-{V_D}"
-    qdiss_dir = f"./V_D-{V_D}/QdissConcise-{V_D}"
+    sum_dir = f"./V_D-{V_D}/Deterministic/SumConcise-{V_D}"
+    cout_dir = f"./V_D-{V_D}/Deterministic/CarryOutConcise-{V_D}"
+    errorsum_dir = f"./V_D-{V_D}/Deterministic/ErrorSumConcise-{V_D}"
+    errorcout_dir = f"./V_D-{V_D}/Deterministic/ErrorCoutConcise-{V_D}"
+    qdiss_dir = f"./V_D-{V_D}/Deterministic/QdissConcise-{V_D}"
     try:
         Path(sum_dir).mkdir()
     except FileExistsError:
@@ -176,7 +176,7 @@ def plot_concise():
         energyax.set_title(f"Plot of Cumulative Energy Dissipation against Time")
         for j in range(N_INPUTS):
             j_bin = convert_to_binary(j)
-            with open(f"./V_D-{V_D}/ResultsV_D-{V_D}/Results-Prev{i_bin}-Curr{j_bin}.csv", "r") as file:
+            with open(f"./V_D-{V_D}/Deterministic/ResultsV_D-{V_D}/Results-Prev{i_bin}-Curr{j_bin}.csv", "r") as file:
                 reader = csv.DictReader(file)
                 k = 0
                 for row in reader:

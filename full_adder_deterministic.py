@@ -294,11 +294,9 @@ def NAND_propagation(Vin_X, Vin_Y, Vg):
     p = null_space(RNAND)
 
     # Normalise the p-vector using 1-norm
-    sum = 0.0
+    psum = np.sum(p)
     for i in range(N_STATES):
-        sum += p[i]
-    for i in range(N_STATES):
-        p[i] = p[i]/sum
+        p[i] = p[i]/psum
 
     # Probability that a combination of transistors has electron(s)
     # The state vector p has the elements ordered in the unconventional way
@@ -399,11 +397,9 @@ def NOT_propagation(Vin, Vg):
     p = null_space(RNOT)
 
     # Normalise the p-vector using 1-norm
-    sum = 0.0
+    psum = np.sum(p)
     for i in range(N_STATES):
-        sum += p[i]
-    for i in range(N_STATES):
-        p[i] = p[i]/sum
+        p[i] = p[i]/psum
 
     # Probability that a combination of transistors has electron(s)
     # The state vector p has elements ordered in this way
@@ -539,7 +535,7 @@ def main():
     start = time.time_ns()
 
     # Create folder to hold results and graphs
-    output_folder = f"./V_D-{V_D}"
+    output_folder = f"./V_D-{V_D}/Deterministic"
     try:
         Path(output_folder).mkdir()
     except FileExistsError:
