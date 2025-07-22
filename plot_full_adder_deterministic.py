@@ -1,16 +1,16 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import csv, time, sys
+import csv, time, sys, os
 from pathlib import Path
 from full_adder_deterministic import convert_to_binary
 
 # Define simulation parameters
-tint = 100                          # Time interval between data points, normalised by beta*h_bar
-T = 2500000                         # Total simulation time, normalised by beta*h_bar
+tint = 50000                          # Time interval between data points, normalised by beta*h_bar
+T = 1000000000                         # Total simulation time, normalised by beta*h_bar
 Ntot = int(T/tint)                  # Number of data points
 N_INPUTS = 8                        # Number of possible input combinations
 ksi_th = 0.01                       # Error rate threshold
-V_D = 2.5                           # Drain voltage, normalised by V_T
+V_D = 12.5                           # Drain voltage, normalised by V_T
 
 # Initialise x and y values
 timesteps = np.arange(0, T, tint)   # x-axis: time
@@ -25,11 +25,18 @@ tau_sum = np.zeros((N_INPUTS, N_INPUTS))
 tau_cout = np.zeros((N_INPUTS, N_INPUTS))
 
 def plot_individual():
-    sum_dir = f"./V_D-{V_D}/Deterministic/Sum-{V_D}"
-    cout_dir = f"./V_D-{V_D}/Deterministic/CarryOut-{V_D}"
-    errorsum_dir = f"./V_D-{V_D}/Deterministic/ErrorSum-{V_D}"
-    errorcout_dir = f"./V_D-{V_D}/Deterministic/ErrorCout-{V_D}"
-    qdiss_dir = f"./V_D-{V_D}/Deterministic/Qdiss-{V_D}"
+    if os.path.exists(f"./V_D-{V_D}/Propagation_Delay.csv"):
+        os.remove(f"./V_D-{V_D}/Propagation_Delay.csv")
+
+    with open(f"./V_D-{V_D}/Propagation_Delay.csv", "a") as file:
+        writer = csv.DictWriter(file, fieldnames=["Previous Input", "Current Input", "Sum Propagation Delay", "Cout Propagation Delay"], lineterminator="\n")
+        writer.writeheader()
+
+    sum_dir = f"./V_D-{V_D}/Sum-{V_D}"
+    cout_dir = f"./V_D-{V_D}/CarryOut-{V_D}"
+    errorsum_dir = f"./V_D-{V_D}/ErrorSum-{V_D}"
+    errorcout_dir = f"./V_D-{V_D}/ErrorCout-{V_D}"
+    qdiss_dir = f"./V_D-{V_D}/Qdiss-{V_D}"
     try:
         Path(sum_dir).mkdir()
     except FileExistsError:
@@ -55,7 +62,7 @@ def plot_individual():
         i_bin = convert_to_binary(i)
         for j in range(N_INPUTS):
             j_bin = convert_to_binary(j)
-            with open(f"./V_D-{V_D}/Deterministic/ResultsV_D-{V_D}/Results-Prev{i_bin}-Curr{j_bin}.csv", "r") as file:
+            with open(f"./V_D-{V_D}/ResultsV_D-{V_D}/Results-Prev{i_bin}-Curr{j_bin}.csv", "r") as file:
                 reader = csv.DictReader(file)
                 k = 0
                 for row in reader:
@@ -65,18 +72,29 @@ def plot_individual():
                     ErrorCout[k] = row["Carry Out Error Rate (Dimless)"]
                     Qdiss[k] = row["Energy Dissipation (J)"]
 
-                    # Sometimes, the concept of propagation time for a particular trial is trivial
-                    # This is when the old theoretical steady-state state is equal to the new theoretical steady-state so error rate is always < 0.01
-                    # This means tau would be zero for that trial -> the assignment of tau is quite redundant
-                    # This first inequality ensures that the concept of tau is non-trivial
-                    if float(ErrorSum[0]) > 0.01:
-                        if float(ErrorSum[k]) < 0.01 and tau_sum[i, j] == 0.0:
-                            tau_sum[i, j] = k
-                    if float(ErrorCout[0]) > 0.01:
-                        if float(ErrorCout[k]) < 0.01 and tau_cout[i, j] == 0.0:
-                            tau_cout[i, j] = k                   
-
                     k += 1
+
+            maxerrorsum = np.max(ErrorSum)
+            maxerrorsum_index = np.argmax(ErrorSum)
+            maxerrorcout = np.max(ErrorCout)
+            maxerrorcout_index = np.argmax(ErrorCout)
+
+            if maxerrorsum > ksi_th:
+                for k in range(maxerrorsum_index, Ntot):
+                    if float(ErrorSum[k]) < ksi_th:
+                        tau_sum[i, j] = k
+                        break
+                    elif k == Ntot - 1:
+                        tau_sum[i, j] = k
+            
+            if maxerrorcout > ksi_th:
+                for k in range(maxerrorcout_index, Ntot):
+                    if float(ErrorCout[k]) < ksi_th:
+                        tau_cout[i, j] = k
+                        break
+                    elif k == Ntot - 1:
+                        tau_cout[i, j] = k
+                
             plt.plot(timesteps, Sum)
             plt.xlabel("Time (s)")
             plt.ylabel("Sum Voltage (V)")
@@ -120,12 +138,16 @@ def plot_individual():
             plt.savefig(f"{qdiss_dir}/Qdiss-Prev{i_bin}-Curr{j_bin}")
             plt.close()
 
+            with open(f"./V_D-{V_D}/Propagation_Delay.csv", "a") as file:
+                writer = csv.DictWriter(file, fieldnames=["Previous Input", "Current Input", "Sum Propagation Delay", "Cout Propagation Delay"], lineterminator="\n")
+                writer.writerow({"Previous Input": i_bin, "Current Input": j_bin, "Sum Propagation Delay": tau_sum[i, j]*tint, "Cout Propagation Delay": tau_cout[i, j]*tint})
+
 def plot_concise():
-    sum_dir = f"./V_D-{V_D}/Deterministic/SumConcise-{V_D}"
-    cout_dir = f"./V_D-{V_D}/Deterministic/CarryOutConcise-{V_D}"
-    errorsum_dir = f"./V_D-{V_D}/Deterministic/ErrorSumConcise-{V_D}"
-    errorcout_dir = f"./V_D-{V_D}/Deterministic/ErrorCoutConcise-{V_D}"
-    qdiss_dir = f"./V_D-{V_D}/Deterministic/QdissConcise-{V_D}"
+    sum_dir = f"./V_D-{V_D}/SumConcise-{V_D}"
+    cout_dir = f"./V_D-{V_D}/CarryOutConcise-{V_D}"
+    errorsum_dir = f"./V_D-{V_D}/ErrorSumConcise-{V_D}"
+    errorcout_dir = f"./V_D-{V_D}/ErrorCoutConcise-{V_D}"
+    qdiss_dir = f"./V_D-{V_D}/QdissConcise-{V_D}"
     try:
         Path(sum_dir).mkdir()
     except FileExistsError:
@@ -176,7 +198,7 @@ def plot_concise():
         energyax.set_title(f"Plot of Cumulative Energy Dissipation against Time")
         for j in range(N_INPUTS):
             j_bin = convert_to_binary(j)
-            with open(f"./V_D-{V_D}/Deterministic/ResultsV_D-{V_D}/Results-Prev{i_bin}-Curr{j_bin}.csv", "r") as file:
+            with open(f"./V_D-{V_D}/ResultsV_D-{V_D}/Results-Prev{i_bin}-Curr{j_bin}.csv", "r") as file:
                 reader = csv.DictReader(file)
                 k = 0
                 for row in reader:
@@ -229,14 +251,20 @@ def plot_concise():
 def main():
     start = time.time_ns()
 
-    if len(sys.argv) != 2:
-        print("Usage: python plot_full_adder.py [individual|concise]")
+    if len(sys.argv) == 2:
+        if sys.argv[1] == "individual":
+            plot_individual()
+        elif sys.argv[1] == "concise":
+            plot_concise()
+    elif len(sys.argv) == 1:
+        plot_individual()
+        plot_concise()
+    else:
+        print("Usage: python plot_full_adder.py [individual|concise] OR python plot_full_adder.py")
         sys.exit(1)
 
-    if sys.argv[1] == "individual":
-        plot_individual()
-    elif sys.argv[1] == "concise":
-        plot_concise()
+    
+    
 
     end = time.time_ns()
 
