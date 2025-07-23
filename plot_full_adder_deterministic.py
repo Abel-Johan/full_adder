@@ -5,12 +5,13 @@ from pathlib import Path
 from full_adder_deterministic import convert_to_binary
 
 # Define simulation parameters
-tint = 50000                          # Time interval between data points, normalised by beta*h_bar
-T = 1000000000                         # Total simulation time, normalised by beta*h_bar
+tint = 500                          # Time interval between data points, normalised by beta*h_bar
+T = 10000000                         # Total simulation time, normalised by beta*h_bar
 Ntot = int(T/tint)                  # Number of data points
 N_INPUTS = 8                        # Number of possible input combinations
 ksi_th = 0.01                       # Error rate threshold
-V_D = 12.5                           # Drain voltage, normalised by V_T
+V_D = 7.5                           # Drain voltage, normalised by V_T
+kT = 4.143e-21                      # What we normalised energy with. Used to rescale energy dissipation to prevent overflow
 
 # Initialise x and y values
 timesteps = np.arange(0, T, tint)   # x-axis: time
@@ -25,11 +26,11 @@ tau_sum = np.zeros((N_INPUTS, N_INPUTS))
 tau_cout = np.zeros((N_INPUTS, N_INPUTS))
 
 def plot_individual():
-    if os.path.exists(f"./V_D-{V_D}/Propagation_Delay.csv"):
-        os.remove(f"./V_D-{V_D}/Propagation_Delay.csv")
+    if os.path.exists(f"./V_D-{V_D}/Summary.csv"):
+        os.remove(f"./V_D-{V_D}/Summary.csv")
 
-    with open(f"./V_D-{V_D}/Propagation_Delay.csv", "a") as file:
-        writer = csv.DictWriter(file, fieldnames=["Previous Input", "Current Input", "Sum Propagation Delay", "Cout Propagation Delay"], lineterminator="\n")
+    with open(f"./V_D-{V_D}/Summary.csv", "a") as file:
+        writer = csv.DictWriter(file, fieldnames=["Previous Input", "Current Input", "Sum Propagation Delay", "Cout Propagation Delay", "Energy Dissipation"], lineterminator="\n")
         writer.writeheader()
 
     sum_dir = f"./V_D-{V_D}/Sum-{V_D}"
@@ -138,9 +139,10 @@ def plot_individual():
             plt.savefig(f"{qdiss_dir}/Qdiss-Prev{i_bin}-Curr{j_bin}")
             plt.close()
 
-            with open(f"./V_D-{V_D}/Propagation_Delay.csv", "a") as file:
-                writer = csv.DictWriter(file, fieldnames=["Previous Input", "Current Input", "Sum Propagation Delay", "Cout Propagation Delay"], lineterminator="\n")
-                writer.writerow({"Previous Input": i_bin, "Current Input": j_bin, "Sum Propagation Delay": tau_sum[i, j]*tint, "Cout Propagation Delay": tau_cout[i, j]*tint})
+            with open(f"./V_D-{V_D}/Summary.csv", "a") as file:
+                writer = csv.DictWriter(file, fieldnames=["Previous Input", "Current Input", "Sum Propagation Delay", "Cout Propagation Delay", "Energy Dissipation"], lineterminator="\n")
+                writer.writerow({"Previous Input": i_bin, "Current Input": j_bin, "Sum Propagation Delay": tau_sum[i, j]*tint, "Cout Propagation Delay": tau_cout[i, j]*tint, "Energy Dissipation": Qdiss[Ntot-1]/kT})
+    print(f"Propagation time = {np.max(np.concatenate((tau_sum, tau_cout)))*tint}")
 
 def plot_concise():
     sum_dir = f"./V_D-{V_D}/SumConcise-{V_D}"
