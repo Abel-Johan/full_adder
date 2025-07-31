@@ -5,12 +5,12 @@ from pathlib import Path
 from full_adder_deterministic import convert_to_binary
 
 # Define simulation parameters
-tint = 500                          # Time interval between data points, normalised by beta*h_bar
-T = 10000000                         # Total simulation time, normalised by beta*h_bar
+tint = 50000                          # Time interval between data points, normalised by beta*h_bar
+T = 1000000000                         # Total simulation time, normalised by beta*h_bar
 Ntot = int(T/tint)                  # Number of data points
 N_INPUTS = 8                        # Number of possible input combinations
 ksi_th = 0.01                       # Error rate threshold
-V_D = 7.5                           # Drain voltage, normalised by V_T
+V_D = 12.5                           # Drain voltage, normalised by V_T
 kT = 4.143e-21                      # What we normalised energy with. Used to rescale energy dissipation to prevent overflow
 
 # Initialise x and y values
@@ -97,8 +97,8 @@ def plot_individual():
                         tau_cout[i, j] = k
                 
             plt.plot(timesteps, Sum)
-            plt.xlabel("Time (s)")
-            plt.ylabel("Sum Voltage (V)")
+            plt.xlabel("Time (βℏ)")
+            plt.ylabel("Sum Voltage ($V_T$)")
             plt.title(f"Plot of Sum Voltage against Time for Current Input {j_bin}, Previous Input {i_bin}")
             plt.plot(tau_sum[i, j]*tint, Sum[int(tau_sum[i, j])], 'rx')
             plt.text(tau_sum[i, j]*tint, Sum[int(tau_sum[i, j])]*0.9, f"({tau_sum[i, j]*tint}, {Sum[int(tau_sum[i, j])]})")
@@ -106,8 +106,8 @@ def plot_individual():
             plt.close()
 
             plt.plot(timesteps, Cout)
-            plt.xlabel("Time (s)")
-            plt.ylabel("Carry Out Voltage (V)")
+            plt.xlabel("Time (βℏ)")
+            plt.ylabel("Carry Out Voltage ($V_T$)")
             plt.title(f"Plot of Carry Out Voltage against Time for Current Input {j_bin}, Previous Input {i_bin}")
             plt.plot(tau_cout[i, j]*tint, Cout[int(tau_cout[i, j])], 'rx')
             plt.text(tau_cout[i, j]*tint, Cout[int(tau_cout[i, j])]*0.9, f"({tau_cout[i, j]*tint}, {Cout[int(tau_cout[i, j])]})")
@@ -115,7 +115,7 @@ def plot_individual():
             plt.close()
 
             plt.plot(timesteps, ErrorSum)
-            plt.xlabel("Time (s)")
+            plt.xlabel("Time (βℏ)")
             plt.ylabel("Sum Error Rate (Dimless)")
             plt.title(f"Plot of Sum Error Rate against Time for Current Input {j_bin}, Previous Input {i_bin}")
             plt.plot(tau_sum[i, j]*tint, ErrorSum[int(tau_sum[i, j])], 'rx')
@@ -124,7 +124,7 @@ def plot_individual():
             plt.close()
 
             plt.plot(timesteps, ErrorCout)
-            plt.xlabel("Time (s)")
+            plt.xlabel("Time (βℏ)")
             plt.ylabel("Carry Out Error Rate (Dimless)")
             plt.title(f"Plot of Carry Out Error Rate against Time for Current Input {j_bin}, Previous Input {i_bin}")
             plt.plot(tau_cout[i, j]*tint, ErrorCout[int(tau_cout[i, j])], 'rx')
@@ -133,16 +133,16 @@ def plot_individual():
             plt.close()
 
             plt.plot(timesteps, Qdiss)
-            plt.xlabel("Time (s)")
+            plt.xlabel("Time (βℏ)")
             plt.ylabel("Energy Dissipation (J)")
             plt.title(f"Plot of Cumulative Energy Dissipation against Time for Current Input {j_bin}, Previous Input {i_bin}")
             plt.savefig(f"{qdiss_dir}/Qdiss-Prev{i_bin}-Curr{j_bin}")
             plt.close()
 
             with open(f"./V_D-{V_D}/Summary.csv", "a") as file:
-                writer = csv.DictWriter(file, fieldnames=["Previous Input", "Current Input", "Sum Propagation Delay", "Cout Propagation Delay", "Energy Dissipation"], lineterminator="\n")
-                writer.writerow({"Previous Input": i_bin, "Current Input": j_bin, "Sum Propagation Delay": tau_sum[i, j]*tint, "Cout Propagation Delay": tau_cout[i, j]*tint, "Energy Dissipation": Qdiss[Ntot-1]/kT})
-    print(f"Propagation time = {np.max(np.concatenate((tau_sum, tau_cout)))*tint}")
+                writer = csv.DictWriter(file, fieldnames=["Previous Input", "Current Input", "Sum Propagation Delay (βℏ)", "Cout Propagation Delay (βℏ)", "Energy Dissipation (kT)"], lineterminator="\n")
+                writer.writerow({"Previous Input": i_bin, "Current Input": j_bin, "Sum Propagation Delay (βℏ)": tau_sum[i, j]*tint, "Cout Propagation Delay (βℏ)": tau_cout[i, j]*tint, "Energy Dissipation (kT)": Qdiss[Ntot-1]/kT})
+    #print(f"Propagation time = {np.max(np.concatenate((tau_sum, tau_cout)))*tint}")
 
 def plot_concise():
     sum_dir = f"./V_D-{V_D}/SumConcise-{V_D}"
@@ -175,27 +175,27 @@ def plot_concise():
 
         # Create figures and axes to plot each quantity on
         sumfig, sumax = plt.subplots()
-        sumax.set_xlabel("Time (s)")
-        sumax.set_ylabel("Sum Voltage (V)")
+        sumax.set_xlabel("Time (βℏ)")
+        sumax.set_ylabel("Sum Voltage ($V_T$)")
         sumax.set_title("Plot of Sum Voltage against Time")
 
         coutfig, coutax = plt.subplots()            
-        coutax.set_xlabel("Time (s)")
-        coutax.set_xlabel("Carry Out Voltage (V)")
+        coutax.set_xlabel("Time (βℏ)")
+        coutax.set_xlabel("Carry Out Voltage ($V_T$)")
         coutax.set_title("Plot of Carry Out Voltage against Time")
 
         sumerrorfig, sumerrorax = plt.subplots()           
-        sumerrorax.set_xlabel("Time (s)")
+        sumerrorax.set_xlabel("Time (βℏ)")
         sumerrorax.set_ylabel("Sum Error Rate (Dimless)")
         sumerrorax.set_title("Plot of Sum Error Rate against Time")
 
         couterrorfig, couterrorax = plt.subplots()            
-        couterrorax.set_xlabel("Time (s)")
+        couterrorax.set_xlabel("Time (βℏ)")
         couterrorax.set_label("Carry Out Error Rate (Dimless)")
         couterrorax.set_title("Plot of Carry Out Error Rate against Time")
 
         energyfig, energyax = plt.subplots()            
-        energyax.set_xlabel("Time (s)")
+        energyax.set_xlabel("Time (βℏ)")
         energyax.set_ylabel("Energy Dissipation (J)")
         energyax.set_title(f"Plot of Cumulative Energy Dissipation against Time")
         for j in range(N_INPUTS):

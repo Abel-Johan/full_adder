@@ -550,16 +550,17 @@ def main():
 
     # Loop across all possible previous steady-state inputs
     for i in range(N_INPUT):
-        # Initialise all gate voltages to the correct value for the given previous inputs
-        Vg_XOR1[0], Vg_XOR1[1], Vg_XOR1[2], Vg_XOR1[3] = (Vg_XOR1_NAND1_init[i], Vg_XOR1_NAND2_init[i], Vg_XOR1_NAND3_init[i], Vg_XOR1_init[i])
-        Vg_XOR2[0], Vg_XOR2[1], Vg_XOR2[2], Vg_XOR2[3] = (Vg_XOR2_NAND1_init[i], Vg_XOR2_NAND2_init[i], Vg_XOR2_NAND3_init[i], Vg_XOR2_init[i])
-        Vg_AND1[0], Vg_AND1[1] = (Vg_AND1_NAND_init[i], Vg_AND1_init[i])
-        Vg_AND2[0], Vg_AND2[1] = (Vg_AND2_NAND_init[i], Vg_AND2_init[i])
-        Vg_OR[0], Vg_OR[1], Vg_OR[2] = (Vg_OR_NOT1_init[i], Vg_OR_NOT2_init[i], Vg_OR_init[i])
-
         # Loop across all possible current inputs
         for j in range(N_INPUT):
+            # Initialise all gate voltages to the correct value for the given previous inputs
+            Vg_XOR1[0], Vg_XOR1[1], Vg_XOR1[2], Vg_XOR1[3] = (Vg_XOR1_NAND1_init[i], Vg_XOR1_NAND2_init[i], Vg_XOR1_NAND3_init[i], Vg_XOR1_init[i])
+            Vg_XOR2[0], Vg_XOR2[1], Vg_XOR2[2], Vg_XOR2[3] = (Vg_XOR2_NAND1_init[i], Vg_XOR2_NAND2_init[i], Vg_XOR2_NAND3_init[i], Vg_XOR2_init[i])
+            Vg_AND1[0], Vg_AND1[1] = (Vg_AND1_NAND_init[i], Vg_AND1_init[i])
+            Vg_AND2[0], Vg_AND2[1] = (Vg_AND2_NAND_init[i], Vg_AND2_init[i])
+            Vg_OR[0], Vg_OR[1], Vg_OR[2] = (Vg_OR_NOT1_init[i], Vg_OR_NOT2_init[i], Vg_OR_init[i])
+
             print(f"Now at i = {i}, j = {j}")
+            
             # Using Vin_Cin_init[j], Vin_A_init[j[]], Vin_B_init[j], we can loop through all the combination of current inputs easily
             # Loop across all timesteps:
             Qdiss_temp = 0.0
