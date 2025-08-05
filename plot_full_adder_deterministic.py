@@ -5,16 +5,17 @@ from pathlib import Path
 from full_adder_deterministic import convert_to_binary
 
 # Define simulation parameters
-tint = 50000                          # Time interval between data points, normalised by beta*h_bar
-T = 1000000000                         # Total simulation time, normalised by beta*h_bar
+tint = 100                          # Time interval between data points, normalised by beta*h_bar
+T = 2500000                         # Total simulation time, normalised by beta*h_bar
 Ntot = int(T/tint)                  # Number of data points
 N_INPUTS = 8                        # Number of possible input combinations
 ksi_th = 0.01                       # Error rate threshold
-V_D = 12.5                           # Drain voltage, normalised by V_T
+V_D = 5.0                           # Drain voltage, normalised by V_T
 kT = 4.143e-21                      # What we normalised energy with. Used to rescale energy dissipation to prevent overflow
 
 # Initialise x and y values
 timesteps = np.arange(0, T, tint)   # x-axis: time
+marker_timesteps = np.linspace(0, T, 11) # For plotting markers
 Sum = np.zeros(Ntot)                # Initialise sum output voltage vector
 Cout = np.zeros(Ntot)               # Initialise carry out output voltage vector
 ErrorSum = np.zeros(Ntot)           # Initialise sum error rate vector
@@ -25,12 +26,15 @@ Qdiss = np.zeros(Ntot)              # Initialise total energy dissipation vector
 tau_sum = np.zeros((N_INPUTS, N_INPUTS))
 tau_cout = np.zeros((N_INPUTS, N_INPUTS))
 
+def round_to_3(x):
+    return round(x, -int(np.floor(np.log10(abs(x))))+2)
+
 def plot_individual():
     if os.path.exists(f"./V_D-{V_D}/Summary.csv"):
         os.remove(f"./V_D-{V_D}/Summary.csv")
 
     with open(f"./V_D-{V_D}/Summary.csv", "a") as file:
-        writer = csv.DictWriter(file, fieldnames=["Previous Input", "Current Input", "Sum Propagation Delay", "Cout Propagation Delay", "Energy Dissipation"], lineterminator="\n")
+        writer = csv.DictWriter(file, fieldnames=["Previous Input", "Current Input", "Sum Propagation Delay", "Cout Propagation Delay", "Energy Dissipation at tau (kT)", "Energy Dissipation Total (kT)"], lineterminator="\n")
         writer.writeheader()
 
     sum_dir = f"./V_D-{V_D}/Sum-{V_D}"
@@ -71,7 +75,7 @@ def plot_individual():
                     Cout[k] = row["Carry Out Voltage (V)"]
                     ErrorSum[k] = row["Sum Error Rate (Dimless)"]
                     ErrorCout[k] = row["Carry Out Error Rate (Dimless)"]
-                    Qdiss[k] = row["Energy Dissipation (J)"]
+                    Qdiss[k] = float(row["Energy Dissipation (J)"])/kT
 
                     k += 1
 
@@ -97,7 +101,8 @@ def plot_individual():
                         tau_cout[i, j] = k
                 
             plt.plot(timesteps, Sum)
-            plt.xlabel("Time (βℏ)")
+            plt.rcParams["figure.figsize"] = (7.2, 4.8)
+            plt.xlabel("Time ($βℏ$)")
             plt.ylabel("Sum Voltage ($V_T$)")
             plt.title(f"Plot of Sum Voltage against Time for Current Input {j_bin}, Previous Input {i_bin}")
             plt.plot(tau_sum[i, j]*tint, Sum[int(tau_sum[i, j])], 'rx')
@@ -106,7 +111,8 @@ def plot_individual():
             plt.close()
 
             plt.plot(timesteps, Cout)
-            plt.xlabel("Time (βℏ)")
+            plt.rcParams["figure.figsize"] = (7.6, 4.8)
+            plt.xlabel("Time ($βℏ$)")
             plt.ylabel("Carry Out Voltage ($V_T$)")
             plt.title(f"Plot of Carry Out Voltage against Time for Current Input {j_bin}, Previous Input {i_bin}")
             plt.plot(tau_cout[i, j]*tint, Cout[int(tau_cout[i, j])], 'rx')
@@ -115,7 +121,8 @@ def plot_individual():
             plt.close()
 
             plt.plot(timesteps, ErrorSum)
-            plt.xlabel("Time (βℏ)")
+            plt.rcParams["figure.figsize"] = (7.2, 4.8)
+            plt.xlabel("Time ($βℏ$)")
             plt.ylabel("Sum Error Rate (Dimless)")
             plt.title(f"Plot of Sum Error Rate against Time for Current Input {j_bin}, Previous Input {i_bin}")
             plt.plot(tau_sum[i, j]*tint, ErrorSum[int(tau_sum[i, j])], 'rx')
@@ -124,7 +131,8 @@ def plot_individual():
             plt.close()
 
             plt.plot(timesteps, ErrorCout)
-            plt.xlabel("Time (βℏ)")
+            plt.rcParams["figure.figsize"] = (7.6, 4.8)
+            plt.xlabel("Time ($βℏ$)")
             plt.ylabel("Carry Out Error Rate (Dimless)")
             plt.title(f"Plot of Carry Out Error Rate against Time for Current Input {j_bin}, Previous Input {i_bin}")
             plt.plot(tau_cout[i, j]*tint, ErrorCout[int(tau_cout[i, j])], 'rx')
@@ -133,15 +141,16 @@ def plot_individual():
             plt.close()
 
             plt.plot(timesteps, Qdiss)
-            plt.xlabel("Time (βℏ)")
-            plt.ylabel("Energy Dissipation (J)")
+            plt.rcParams["figure.figsize"] = (12.0, 4.8)
+            plt.xlabel("Time ($βℏ$)")
+            plt.ylabel("Energy Dissipation ($kT$)")
             plt.title(f"Plot of Cumulative Energy Dissipation against Time for Current Input {j_bin}, Previous Input {i_bin}")
             plt.savefig(f"{qdiss_dir}/Qdiss-Prev{i_bin}-Curr{j_bin}")
             plt.close()
 
             with open(f"./V_D-{V_D}/Summary.csv", "a") as file:
-                writer = csv.DictWriter(file, fieldnames=["Previous Input", "Current Input", "Sum Propagation Delay (βℏ)", "Cout Propagation Delay (βℏ)", "Energy Dissipation (kT)"], lineterminator="\n")
-                writer.writerow({"Previous Input": i_bin, "Current Input": j_bin, "Sum Propagation Delay (βℏ)": tau_sum[i, j]*tint, "Cout Propagation Delay (βℏ)": tau_cout[i, j]*tint, "Energy Dissipation (kT)": Qdiss[Ntot-1]/kT})
+                writer = csv.DictWriter(file, fieldnames=["Previous Input", "Current Input", "Sum Propagation Delay (βℏ)", "Cout Propagation Delay (βℏ)", "Energy Dissipation at τ (kT)", "Energy Dissipation Total (kT)"], lineterminator="\n")
+                writer.writerow({"Previous Input": i_bin, "Current Input": j_bin, "Sum Propagation Delay (βℏ)": tau_sum[i, j]*tint, "Cout Propagation Delay (βℏ)": tau_cout[i, j]*tint, "Energy Dissipation at τ (kT)": Qdiss[15312], "Energy Dissipation Total (kT)": Qdiss[-1]})
     #print(f"Propagation time = {np.max(np.concatenate((tau_sum, tau_cout)))*tint}")
 
 def plot_concise():
@@ -175,29 +184,37 @@ def plot_concise():
 
         # Create figures and axes to plot each quantity on
         sumfig, sumax = plt.subplots()
-        sumax.set_xlabel("Time (βℏ)")
+        sumax.set_xlabel("Time ($βℏ$)")
         sumax.set_ylabel("Sum Voltage ($V_T$)")
         sumax.set_title("Plot of Sum Voltage against Time")
 
         coutfig, coutax = plt.subplots()            
-        coutax.set_xlabel("Time (βℏ)")
+        coutax.set_xlabel("Time ($βℏ$)")
         coutax.set_xlabel("Carry Out Voltage ($V_T$)")
         coutax.set_title("Plot of Carry Out Voltage against Time")
 
         sumerrorfig, sumerrorax = plt.subplots()           
-        sumerrorax.set_xlabel("Time (βℏ)")
+        sumerrorax.set_xlabel("Time ($βℏ$)")
         sumerrorax.set_ylabel("Sum Error Rate (Dimless)")
         sumerrorax.set_title("Plot of Sum Error Rate against Time")
 
         couterrorfig, couterrorax = plt.subplots()            
-        couterrorax.set_xlabel("Time (βℏ)")
+        couterrorax.set_xlabel("Time ($βℏ$)")
         couterrorax.set_label("Carry Out Error Rate (Dimless)")
         couterrorax.set_title("Plot of Carry Out Error Rate against Time")
 
-        energyfig, energyax = plt.subplots()            
-        energyax.set_xlabel("Time (βℏ)")
-        energyax.set_ylabel("Energy Dissipation (J)")
+        energyfig, energyax = plt.subplots()    
+        energyfig.set_size_inches(7.2, 4.8)        
+        energyax.set_xlabel("Time ($βℏ$)")
+        energyax.set_ylabel("Energy Dissipation ($kT$)")
         energyax.set_title(f"Plot of Cumulative Energy Dissipation against Time")
+
+        markers = ['o', 'v', '^', '+', 'x', 's', '<', '>']
+        colours = ['b', 'g', 'r', 'orange', 'm', 'y', 'k', 'brown']
+        #x_multiplier = [1.02, 1.02, 1.02, 0.72, 1.02, 0.72, 0.72, 0.72]
+        #y_multiplier = [0.42, 0.73, 0.62, 1.17, 0.53, 1.23, 1.32, 1.2]
+
+        Q_max = 0
         for j in range(N_INPUTS):
             j_bin = convert_to_binary(j)
             with open(f"./V_D-{V_D}/ResultsV_D-{V_D}/Results-Prev{i_bin}-Curr{j_bin}.csv", "r") as file:
@@ -208,7 +225,7 @@ def plot_concise():
                     Cout[k] = row["Carry Out Voltage (V)"]
                     ErrorSum[k] = row["Sum Error Rate (Dimless)"]
                     ErrorCout[k] = row["Carry Out Error Rate (Dimless)"]
-                    Qdiss[k] = row["Energy Dissipation (J)"]
+                    Qdiss[k] = float(row["Energy Dissipation (J)"])/kT
                     
                     # Sometimes, the concept of propagation time for a particular trial is trivial
                     # This is when the old theoretical steady-state state is equal to the new theoretical steady-state so error rate is always < 0.01
@@ -223,25 +240,31 @@ def plot_concise():
                             
                     k += 1
 
-            sumax.plot(timesteps, Sum, label=j_bin)
+            sumax.plot(timesteps, Sum, markers[j], ls='-', c=colours[j], markevery=int(Ntot/10), label=j_bin)
             # sumax.plot(tau_sum[i, j]*tint, Sum[int(tau_sum[i, j])], 'gx')
             # sumax.text(tau_sum[i, j]*tint, Sum[int(tau_sum[i, j])]*0.9, f"({tau_sum[i, j]*tint}, {Sum[int(tau_sum[i, j])]})")
-            coutax.plot(timesteps, Cout, label=j_bin)
+            coutax.plot(timesteps, Cout, markers[j], ls='-', c=colours[j], markevery=int(Ntot/10), label=j_bin)
             # coutax.plot(tau_cout[i, j]*tint, Cout[int(tau_cout[i, j])], 'gx')
             # coutax.text(tau_cout[i, j]*tint, Cout[int(tau_cout[i, j])]*0.9, f"({tau_cout[i, j]*tint}, {Cout[int(tau_cout[i, j])]})")
-            sumerrorax.plot(timesteps, ErrorSum, label=j_bin)
+            sumerrorax.plot(timesteps, ErrorSum, markers[j], ls='-', c=colours[j], markevery=int(Ntot/10), label=j_bin)
             # sumerrorax.plot(tau_sum[i, j]*tint, ErrorSum[int(tau_sum[i, j])], 'gx')
             # sumerrorax.text(tau_sum[i, j]*tint, ErrorSum[int(tau_sum[i, j])]*0.9, f"({tau_sum[i, j]*tint}, {ErrorSum[int(tau_sum[i, j])]})")
-            couterrorax.plot(timesteps, ErrorCout, label=j_bin)
+            couterrorax.plot(timesteps, ErrorCout, markers[j], ls='-', c=colours[j], markevery=int(Ntot/10), label=j_bin)
             # couterrorax.plot(tau_cout[i, j]*tint, ErrorCout[int(tau_cout[i, j])], 'gx')
             # couterrorax.text(tau_cout[i, j]*tint, ErrorCout[int(tau_sum[i, j])]*0.9, f"({tau_cout[i, j]*tint}, {ErrorCout[int(tau_cout[i, j])]})")
-            energyax.plot(timesteps, Qdiss, label=j_bin)
-        
+            energyax.plot(timesteps, Qdiss, markers[j], ls='-', c=colours[j], markevery=int(Ntot/10), label=j_bin)
+            if Qdiss[-1] > Q_max:
+                Q_max = Qdiss[-1]
+            #energyax.text(1531200*x_multiplier[j], Qdiss[15312]*y_multiplier[j], f"({round_to_3(Qdiss[15312])})", c=colours[j], backgroundcolor='w')
+      
         sumax.legend(loc=7,fontsize=11)
         coutax.legend(loc=7,fontsize=11)
         sumerrorax.legend(loc=7,fontsize=11)
         couterrorax.legend(loc=7,fontsize=11)
         energyax.legend(loc=7,fontsize=11)
+
+        energyax.vlines(1531200, 0, Q_max, 'r', 'dashed')
+        energyax.text(1531200, 0, "$t=τ$", color='r')
 
         sumfig.savefig(f"{sum_dir}/Sum-Concise-Prev{i_bin}")
         coutfig.savefig(f"{cout_dir}/Cout-Concise-Prev{i_bin}")

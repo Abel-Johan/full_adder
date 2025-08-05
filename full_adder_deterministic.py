@@ -36,7 +36,7 @@ kT = 4.143e-21      # What we normalised energy with. Used to rescale energy dis
 
 # Define simulation parameters
 tint = 500          # Time interval between data points; normalised by beta*h_bar
-T = 10000000         # Total simulation time; normalised by beta*h_bar
+T = 25000000         # Total simulation time; normalised by beta*h_bar
 Ntot = int(T/tint)   # Number of timesteps
 
 # Define current input sequence. Looping through all three arrays together will allow us to model for all possible current inputs
