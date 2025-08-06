@@ -1,3 +1,25 @@
+"""
+plot_full_adder_deterministic.py
+
+Usage: python plot_full_adder_deterministic.py
+OR     python plot_full_adder_deterministic.py individual
+OR     python plot_full_adder_deterministic.py concise
+
+This script plots time-evolution graphs of Sum, Carry Out, Sum Error Rate, Carry Out Error Rate, and Cumulative Energy Dissipation
+'individual' plots one graph per figure. This option also creates a Summary.csv file which gives the propagation delay, cumulative energy dissipated by tau, and total energy dissipated for each combination of previous and current input
+'concise' plots all 8 possible current inputs for a given previous input on the same figure
+Default is do both options
+
+ALL VARIABLES AND QUANTITIES USED ARE DIMENSIONLESS, UNLESS OTHERWISE STATED
+
+The following quantities are not used in the code, but are required to understand the physics of the model:
+beta  = 1/(kB*T)        # Coldness. kB = Boltzmann constant, T = absolute temperature
+h_bar = h/(2*pi)        # Reduced Planck's constant. h = Planck's constant
+q                       # Elementary charge, roughly equal to 1.602e-19 C
+V_T   = (kB*T)/q        # Thermal voltage
+"""
+
+
 import matplotlib.pyplot as plt
 import numpy as np
 import csv, time, sys, os
@@ -5,12 +27,12 @@ from pathlib import Path
 from full_adder_deterministic import convert_to_binary
 
 # Define simulation parameters
-tint = 100                          # Time interval between data points, normalised by beta*h_bar
-T = 2500000                         # Total simulation time, normalised by beta*h_bar
+tint = 50000                          # Time interval between data points, normalised by beta*h_bar
+T = 1000000000                         # Total simulation time, normalised by beta*h_bar
 Ntot = int(T/tint)                  # Number of data points
 N_INPUTS = 8                        # Number of possible input combinations
 ksi_th = 0.01                       # Error rate threshold
-V_D = 5.0                           # Drain voltage, normalised by V_T
+V_D = 12.5                           # Drain voltage, normalised by V_T
 kT = 4.143e-21                      # What we normalised energy with. Used to rescale energy dissipation to prevent overflow
 
 # Initialise x and y values
@@ -150,7 +172,7 @@ def plot_individual():
 
             with open(f"./V_D-{V_D}/Summary.csv", "a") as file:
                 writer = csv.DictWriter(file, fieldnames=["Previous Input", "Current Input", "Sum Propagation Delay (βℏ)", "Cout Propagation Delay (βℏ)", "Energy Dissipation at τ (kT)", "Energy Dissipation Total (kT)"], lineterminator="\n")
-                writer.writerow({"Previous Input": i_bin, "Current Input": j_bin, "Sum Propagation Delay (βℏ)": tau_sum[i, j]*tint, "Cout Propagation Delay (βℏ)": tau_cout[i, j]*tint, "Energy Dissipation at τ (kT)": Qdiss[15312], "Energy Dissipation Total (kT)": Qdiss[-1]})
+                writer.writerow({"Previous Input": i_bin, "Current Input": j_bin, "Sum Propagation Delay (βℏ)": tau_sum[i, j]*tint, "Cout Propagation Delay (βℏ)": tau_cout[i, j]*tint, "Energy Dissipation at τ (kT)": Qdiss[9683], "Energy Dissipation Total (kT)": Qdiss[-1]})
     #print(f"Propagation time = {np.max(np.concatenate((tau_sum, tau_cout)))*tint}")
 
 def plot_concise():
@@ -263,8 +285,8 @@ def plot_concise():
         couterrorax.legend(loc=7,fontsize=11)
         energyax.legend(loc=7,fontsize=11)
 
-        energyax.vlines(1531200, 0, Q_max, 'r', 'dashed')
-        energyax.text(1531200, 0, "$t=τ$", color='r')
+        energyax.vlines(484150000, 0, Q_max, 'r', 'dashed')
+        energyax.text(484150000, 0, "$t=τ$", color='r')
 
         sumfig.savefig(f"{sum_dir}/Sum-Concise-Prev{i_bin}")
         coutfig.savefig(f"{cout_dir}/Cout-Concise-Prev{i_bin}")
@@ -285,11 +307,8 @@ def main():
         plot_individual()
         plot_concise()
     else:
-        print("Usage: python plot_full_adder.py [individual|concise] OR python plot_full_adder.py")
+        print("Usage: python plot_full_adder_deterministic.py [individual|concise] OR python plot_full_adder_deterministic.py")
         sys.exit(1)
-
-    
-    
 
     end = time.time_ns()
 

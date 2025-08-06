@@ -31,12 +31,12 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 Gamma = 0.2         # Rate constant of electron movement; normalised by 1/(beta*h_bar)
 Cg = 200.0          # Gate capacitance of each NAND_Gate; normalised by q/V_T
 alpha = 0.1         # Judgment threshold factor
-V_D = 7.5           # Drain voltage, normalised by V_T
+V_D = 12.5           # Drain voltage, normalised by V_T
 kT = 4.143e-21      # What we normalised energy with. Used to rescale energy dissipation to prevent overflow
 
 # Define simulation parameters
-tint = 500          # Time interval between data points; normalised by beta*h_bar
-T = 25000000         # Total simulation time; normalised by beta*h_bar
+tint = 50000          # Time interval between data points; normalised by beta*h_bar
+T = 1000000000         # Total simulation time; normalised by beta*h_bar
 Ntot = int(T/tint)   # Number of timesteps
 
 # Define current input sequence. Looping through all three arrays together will allow us to model for all possible current inputs
